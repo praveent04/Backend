@@ -18,7 +18,7 @@ const registerUser = asyncHandler( async(req, res) => {
      // if data is coming from bosy or from forms then we can get it from req.body
 
      const {fullname, email, username, password} = req.body
-     console.log("email: ",email)
+      console.log("Request body: ",req.body)
 
      if (
         [fullname, email, username, password].some((field) =>
@@ -27,12 +27,14 @@ const registerUser = asyncHandler( async(req, res) => {
         throw new ApiError(400, "all fields are required")
      }
 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [ {username}, {email}]
      })
      if(existedUser){
         throw new ApiError(409, "User with email or username already exist")
      }
+
+      console.log(req.files)
 
     const avatarLocalPath = req.files?.avatar[0]?.path
     const coverImageLocalPath = req.files?.coverImage[0]?.path;
@@ -53,7 +55,7 @@ const registerUser = asyncHandler( async(req, res) => {
         avatar: avatar.url,
         coverImage: coverImage?.url || "",
         email,
-        pasword,
+        password,
         username: username.toLowerCase()
     })
 
