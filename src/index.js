@@ -1,12 +1,12 @@
 import dotenv from "dotenv"
 import connectDB from "./db/index.js";
-import express from "express";
+import { app } from "./app.js";
 
 dotenv.config({
     path: './.env'
 })
 
-const app = express()
+
 
 connectDB()
 .then(() =>{
@@ -16,6 +16,7 @@ connectDB()
 })
 .catch((err) =>{
     console.log("ERROR in DB connection function call", err)
+    process.exit(1);
 })
 
 
