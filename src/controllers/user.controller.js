@@ -183,11 +183,10 @@ const refreshAccessToken = asyncHandler( async (req, res) =>{
 
     if(!incomingRefreshToken){
         throw new ApiError(401, "Unauthorised request")
-    }
-
-    try {
+    }   
+     try {
         const decodedToken =  jwt.verify(incomingRefreshToken,
-            process.env.ACCESS_TOKEN_SECRET
+            process.env.REFRESH_TOKEN_SECRET
         )
     
         const user = await User.findById(decodedToken?._id)
@@ -197,20 +196,18 @@ const refreshAccessToken = asyncHandler( async (req, res) =>{
     
         if(incomingRefreshToken != user?.refreshToken){
             throw new ApiError(401,"Refresh token is expired or used")
-        }
-    
-        const options = {
+        }        const options = {
             httpOnly: true,
             secure: true
         }
     
-        const {newaccessToken, newrefreshToken}= await generateAccessAndRefreshToken(user._id)
+        const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
     
         return res.status(200)
-        .cookie("accessToken", newaccessToken,options)
-        .cookie("refreshToken", newrefreshToken, options)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
         .json(
-            new ApiResponse(200, {accessToken, newrefreshToken},
+            new ApiResponse(200, {accessToken, refreshToken},
                 "Access token Refreshed"
             )
         )
@@ -223,7 +220,7 @@ const changeCurrentPassword = asyncHandler(async (req,res) =>{
     const {oldPassword, newPassword} = req.body
 
     const user = await User.findById(req.user?._id)
-    isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
     if(!isPasswordCorrect){
         throw new ApiError(400, "Invalid old Password")
     }
@@ -423,15 +420,13 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                                 }
                             ]
                         }
-                    },
-                    {
+                    },                    {
                         $addFields: {
-                            owner:{
-                                $fir
-
+                            owner: {
+                                $first: "$owner"
                             }
+                        }
                     }
-                }
                 ]
             }
         }
